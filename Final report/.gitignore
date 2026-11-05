@@ -1,0 +1,12 @@
+# Python / Jupyter
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+.venv/
+venv/
+# Office temp-filer
+~$*
+# Windows / Mac
+Thumbs.db
+desktop.ini
+.DS_Store
