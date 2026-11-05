@@ -1,0 +1,127 @@
+<!DOCTYPE html>
+<html lang="en"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1">
+<title>P2X – status and assumptions after step 3</title><style>body{font-family:-apple-system,Segoe UI,Roboto,Helvetica,Arial,sans-serif;max-width:820px;margin:40px auto;padding:0 20px;color:#222;line-height:1.55}
+h1{font-size:1.8em;margin-bottom:.2em}.byline{color:#666;margin-top:0}h2{margin-top:1.8em;border-bottom:1px solid #eee;padding-bottom:.2em}
+table{border-collapse:collapse;width:100%;margin:1em 0;font-size:.95em}th,td{border:1px solid #ddd;padding:6px 10px;text-align:left;vertical-align:top}th{background:#f5f5f5}
+code{background:#f3f3f3;padding:1px 4px;border-radius:3px}.formula{background:#fafafa;border-left:3px solid #ccc;padding:8px 12px;font-family:Cambria,Georgia,serif}
+img{max-width:100%;border:1px solid #eee}.caption{color:#777;font-size:.85em}.charttitle{font-weight:600;font-size:1.1em;margin-bottom:0}.chartsub{color:#666;margin-top:2px}
+ul.tasks{list-style:none;padding-left:0}</style></head>
+<body><h1>P2X – status and assumptions after step 3</h1><p class="byline">5 November 2026 · Group P2X-DTU, course 47211</p>
+<h2>Purpose</h2>
+<p>This note sums up what we have done up to and including step 3, and which assumptions Figure 1 is built on, so the whole group reads the figure the same way. It also describes what changes from step 4, where we start adding technologies to the system.</p>
+<p>The code is in <code>Final report/Data_analyse.ipynb</code> in the GitHub repository <code>Ebbeschou/P2X-DTU</code>.</p>
+<h2>What we have done so far</h2>
+<p>We have built an hourly model of a future Denmark with 730 PJ of energy demand, where wind, solar and biomass balance over the year.</p>
+<ol>
+<li><b>Data:</b> Energinet's <i>ProductionConsumptionSettlement</i> for 2025, hourly values. DK1 and DK2 are added per hour. Wind = offshore and onshore wind of all sizes. Solar = all sizes, excluding self-consumption.</li>
+<li><b>GrossConsumption:</b> Energinet's gross consumption = all Danish production + net import. We checked that this holds in every hour. It includes grid losses (2.7 TWh) and electricity for electric boilers (2.7 TWh). Total 2025: 145.4 PJ (40.4 TWh).</li>
+<li><b>Scaling of production:</b> wind + solar was 83.3 PJ in 2025 and is scaled to 730 − 200 = 530 PJ. Factor 6.37, the same factor for wind and solar, so their ratio (about 82 % wind, 18 % solar) is kept.</li>
+<li><b>Demand model:</b> see the next section.</li>
+<li><b>Figure 1:</b> 12 monthly panels with supply and demand hour by hour.</li>
+</ol>
+<p>The CSV file is missing 31 December 2025, so we have 8736 hours instead of 8760. This changes the factors by about 0.3 %.</p>
+<h2>Assumptions on demand variation</h2>
+<p>Households and light transport follow today's electricity consumption hour by hour. Industry and heavy transport are constant.</p>
+<table><tr><th>Sector</th><th>PJ/year</th><th>Mean power</th><th>Time profile</th></tr>
+<tr><td>Households + light transport</td><td>300 + 100 = 400</td><td>12.72 GW</td><td>Standardised gross consumption 2025</td></tr>
+<tr><td>Industry (incl. 30 PJ data centres)</td><td>180</td><td>5.72 GW</td><td>Constant</td></tr>
+<tr><td>Heavy transport (trucks, shipping, aviation)</td><td>150</td><td>4.77 GW</td><td>Constant</td></tr>
+<tr><td><b>Total</b></td><td><b>730</b></td><td><b>23.21 GW</b></td><td></td></tr></table>
+<p>How the profile is found: the gross consumption of each hour is divided by the annual mean (4.62 GW). The profile then has a mean of 1 and only shows the fluctuations. It is multiplied by the future mean.</p>
+<p class="formula">P<sub>hh+light</sub>(t) = P<sub>gross</sub>(t) / P̄<sub>gross</sub> · P̄<sub>hh+light</sub> = P<sub>gross</sub>(t) · 400 PJ / 145.4 PJ = 2.75 · P<sub>gross</sub>(t)</p>
+<p>We assume that:</p>
+<ul>
+<li>Today's daily, weekly and seasonal rhythm in electricity consumption also describes households and light transport in the future.</li>
+<li>Industry and heavy transport have no daily or seasonal pattern.</li>
+<li>Transport is counted with its fuel energy from step 1. It is not converted to electricity.</li>
+<li>Heat is part of households and industry but follows today's electricity profile. In reality, heat demand peaks in winter.</li>
+</ul>
+<h2>Assumption on biomass</h2>
+<p>Biomass is 200 PJ per year and is used evenly: 6.36 GW every single hour (200 PJ / 8736 h).</p>
+<ul>
+<li><b>200 PJ</b> is the value from the course slides ("Final project – session1"). The written guidelines for 2026 say 150 PJ. We chose the slides and state the choice in the report.</li>
+<li><b>Wind + solar therefore has to cover 730 − 200 = 530 PJ.</b> Together they give 730 PJ, so supply and demand balance over the year.</li>
+<li><b>1 PJ biomass = 1 PJ delivered energy.</b> We include no conversion losses, e.g. in a CHP plant. This is optimistic and has to be revisited when we add technologies.</li>
+<li><b>Even use is a temporary choice.</b> Biomass can be stored and dispatched, so later it can be used when wind and solar are short, or turned into fuel.</li>
+</ul>
+<h2>How to read Figure 1</h2>
+<p>Figure 1 is an energy-balance overview, not an electricity balance. It shows whether there is enough energy in each hour if all energy could be used directly 1:1.</p>
+<p><img src="Figure1_monthly_production_demand.png" alt="Figure 1: supply and demand per month"></p>
+<p><b>Why the two sides can be compared:</b> both sides are in the same unit, energy (PJ per year, or GW = energy per hour). That is why we can plot them on top of each other.</p>
+<p><b>But they are different types of energy:</b></p>
+<ul><li><b>Supply</b> is electricity from wind and solar plus biomass.</li>
+<li><b>Demand</b> is a mix: electricity, heat (space heating, hot water, process heat) and fuel for transport. Today's 145 PJ is electricity only, while the 730 PJ is all energy.</li></ul>
+<p><b>What the figure does not show:</b></p>
+<ul><li>Conversion losses. One PJ of electricity cannot become one PJ of jet fuel.</li>
+<li>That some demands need a specific type of energy. Aircraft and ships cannot run directly on electricity.</li>
+<li>That energy can be stored and moved between hours and months.</li></ul>
+<p>This is exactly what we investigate in the next steps, when we change the demand side.</p>
+<p><b>How to read the panels:</b></p>
+<ul><li>Black line = demand. Blue line = supply (wind + solar + biomass).</li>
+<li>Blue area = surplus. Red area = deficit. Green band at the bottom = biomass.</li>
+<li>Above each panel are the month's surplus and deficit in PJ. The wind + solar scaling factor is in the title.</li></ul>
+<h2>Key figures from Figure 1</h2>
+<p>Over the year, supply (530 PJ wind + solar + 200 PJ biomass) and demand (730 PJ) balance. Hour by hour it is different: 123 PJ of surplus has to be moved to hours with 123 PJ of deficit, and only 4156 of 8736 hours (48 %) have a surplus.</p>
+<p class="charttitle">April is short of the most energy, June has the largest surplus</p>
+<p class="chartsub">Monthly balance, supply − demand [PJ]. Green = surplus, red = deficit. Over the year it sums to zero.</p>
+<svg viewBox='0 0 760 310' role='img' style='width:100%;max-width:760px' font-size='12' font-family='inherit'>
+<rect x='70.6' y='123.1' width='34.6' height='7.4' fill='#4caf50' fill-opacity='0.7'><title>Jan: +0.7 PJ</title></rect>
+<text x='87.9' y='117.1' text-anchor='middle' fill='#222'>+0.7</text>
+<text x='87.9' y='296' text-anchor='middle' fill='#666'>Jan</text>
+<rect x='126.4' y='130.5' width='34.6' height='80.4' fill='#e57373' fill-opacity='0.7'><title>Feb: −7.6 PJ</title></rect>
+<text x='143.8' y='226.9' text-anchor='middle' fill='#222'>−7.6</text>
+<text x='143.8' y='296' text-anchor='middle' fill='#666'>Feb</text>
+<rect x='182.3' y='124.1' width='34.6' height='6.3' fill='#4caf50' fill-opacity='0.7'><title>Mar: +0.6 PJ</title></rect>
+<text x='199.6' y='118.1' text-anchor='middle' fill='#222'>+0.6</text>
+<text x='199.6' y='296' text-anchor='middle' fill='#666'>Mar</text>
+<rect x='238.1' y='130.5' width='34.6' height='119.5' fill='#e57373' fill-opacity='0.7'><title>Apr: −11.3 PJ</title></rect>
+<text x='255.4' y='266.0' text-anchor='middle' fill='#222'>−11.3</text>
+<text x='255.4' y='296' text-anchor='middle' fill='#666'>Apr</text>
+<rect x='293.9' y='103.0' width='34.6' height='27.5' fill='#4caf50' fill-opacity='0.7'><title>May: +2.6 PJ</title></rect>
+<text x='311.3' y='97.0' text-anchor='middle' fill='#222'>+2.6</text>
+<text x='311.3' y='296' text-anchor='middle' fill='#666'>May</text>
+<rect x='349.8' y='30.0' width='34.6' height='100.5' fill='#4caf50' fill-opacity='0.7'><title>Jun: +9.5 PJ</title></rect>
+<text x='367.1' y='24.0' text-anchor='middle' fill='#222'>+9.5</text>
+<text x='367.1' y='296' text-anchor='middle' fill='#666'>Jun</text>
+<rect x='405.6' y='130.5' width='34.6' height='19.0' fill='#e57373' fill-opacity='0.7'><title>Jul: −1.8 PJ</title></rect>
+<text x='422.9' y='165.5' text-anchor='middle' fill='#222'>−1.8</text>
+<text x='422.9' y='296' text-anchor='middle' fill='#666'>Jul</text>
+<rect x='461.4' y='130.5' width='34.6' height='11.6' fill='#e57373' fill-opacity='0.7'><title>Aug: −1.1 PJ</title></rect>
+<text x='478.8' y='158.1' text-anchor='middle' fill='#222'>−1.1</text>
+<text x='478.8' y='296' text-anchor='middle' fill='#666'>Aug</text>
+<rect x='517.3' y='89.2' width='34.6' height='41.2' fill='#4caf50' fill-opacity='0.7'><title>Sep: +3.9 PJ</title></rect>
+<text x='534.6' y='83.2' text-anchor='middle' fill='#222'>+3.9</text>
+<text x='534.6' y='296' text-anchor='middle' fill='#666'>Sep</text>
+<rect x='573.1' y='75.5' width='34.6' height='55.0' fill='#4caf50' fill-opacity='0.7'><title>Oct: +5.2 PJ</title></rect>
+<text x='590.4' y='69.5' text-anchor='middle' fill='#222'>+5.2</text>
+<text x='590.4' y='296' text-anchor='middle' fill='#666'>Oct</text>
+<rect x='628.9' y='130.5' width='34.6' height='21.2' fill='#e57373' fill-opacity='0.7'><title>Nov: −2.0 PJ</title></rect>
+<text x='646.2' y='167.6' text-anchor='middle' fill='#222'>−2.0</text>
+<text x='646.2' y='296' text-anchor='middle' fill='#666'>Nov</text>
+<rect x='684.8' y='115.7' width='34.6' height='14.8' fill='#4caf50' fill-opacity='0.7'><title>Dec: +1.4 PJ</title></rect>
+<text x='702.1' y='109.7' text-anchor='middle' fill='#222'>+1.4</text>
+<text x='702.1' y='296' text-anchor='middle' fill='#666'>Dec</text>
+<line x1='60' x2='730' y1='130.5' y2='130.5' stroke='#999'/>
+</svg>
+<p class="caption">Source: Data_analyse.ipynb · Energinet ProductionConsumptionSettlement 2025, scaled · 8736 hours</p>
+<p>These 123 PJ and the differences between months are what storage, P2X and flexible biomass have to handle from step 4.</p>
+<h2>What changes from now on</h2>
+<p>From step 4 we turn demand into real energy types and add technologies. This changes both how much electricity is needed and when.</p>
+<table><tr><th>Technology</th><th>What it changes</th><th>Effect in Figure 1</th></tr>
+<tr><td>Battery electric cars and trucks</td><td>Fuel is replaced by electricity, which needs much less energy. Charging can be shifted to evening and night.</td><td>Demand falls and gets a new daily profile</td></tr>
+<tr><td>Heat pumps</td><td>Heat is made from electricity with a COP above 1, so less electricity is needed for the same heat</td><td>Demand falls but becomes more winter-heavy</td></tr>
+<tr><td>P2X (electrolysis → hydrogen, e-methanol, e-ammonia, e-kerosene)</td><td>Fuel for ships and aircraft is made from electricity, with losses along the way</td><td>Demand rises but can run flexibly in the blue surplus hours</td></tr>
+<tr><td>Batteries</td><td>Shift electricity from hour to hour and day to day, with a small loss</td><td>The blue and red areas get smaller</td></tr>
+<tr><td>Hydrogen storage + fuel cell</td><td>Shifts energy over weeks and months, e.g. from summer to winter</td><td>Covers long red periods</td></tr>
+<tr><td>Flexible use of biomass</td><td>Burned when wind and solar are short, instead of evenly</td><td>The green band becomes high in red periods and low in blue ones</td></tr></table>
+<p>Efficiencies and COP values have to be taken from the Danish Energy Agency's technology catalogue and cited before they are used in the calculations.</p>
+<h2>Open points and next steps</h2>
+<ul class="tasks">
+<li>☐ Choose which scenarios we calculate in step 4</li>
+<li>☐ Decide whether light transport and trucks are counted as electricity equivalent when electrified</li>
+<li>☐ Decide whether wind + solar should be scaled up once losses from P2X and storage are included</li>
+<li>☐ Decide whether biomass stays even or becomes flexible</li>
+<li>☐ Download the CSV file again incl. 31 December 2025</li>
+<li>☐ Find and cite efficiencies in the Danish Energy Agency's technology catalogue</li>
+<li>☐ Everyone pulls in GitHub Desktop before editing <code>Data_analyse.ipynb</code></li></ul>
+</body></html>
